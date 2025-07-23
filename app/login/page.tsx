@@ -8,9 +8,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Heart, Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useFormState, useFormStatus } from "react-dom"
-import { loginAction } from "../auth/actions"
+import { loginAction, getCurrentUser } from "../auth/actions"
 import { useRouter } from "next/navigation"
 
 // Componente para el botón de envío con estado de carga
@@ -39,13 +39,42 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [state, formAction] = useFormState(loginAction, null)
   const router = useRouter()
+  const [rememberEmail, setRememberEmail] = useState(false)
+  const emailRef = useRef<HTMLInputElement>(null)
+
+  // Al cargar, autocompleta si hay email guardado
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail")
+    if (savedEmail && emailRef.current) {
+      emailRef.current.value = savedEmail
+      setRememberEmail(true)
+    }
+  }, [])
+
+  // Al enviar el formulario, guarda o elimina el email
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (emailRef.current) {
+      if (rememberEmail) {
+        localStorage.setItem("rememberedEmail", emailRef.current.value)
+      } else {
+        localStorage.removeItem("rememberedEmail")
+      }
+    }
+  }
 
   useEffect(() => {
     if (state?.success) {
-      // Redirect after successful login
-      router.push("/dashboard")
+      // Obtener el rol del usuario después de login
+      (async () => {
+        const user = await getCurrentUser();
+        if (user?.role === "ORGANIZATION") {
+          router.push("/organizaciones/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
+      })();
     }
-  }, [state?.success, router])
+  }, [state?.success, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
@@ -93,7 +122,7 @@ export default function LoginPage() {
               </motion.div>
             )}
 
-            <form action={formAction} className="space-y-4">
+            <form action={formAction} className="space-y-4" onSubmit={handleFormSubmit}>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -108,6 +137,7 @@ export default function LoginPage() {
                   placeholder="tu@email.com"
                   required
                   className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  ref={emailRef}
                 />
                 {state?.errors?.email && <p className="text-sm text-red-500">{state.errors.email[0]}</p>}
               </motion.div>
@@ -137,6 +167,25 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {state?.errors?.password && <p className="text-sm text-red-500">{state.errors.password[0]}</p>}
+              </motion.div>
+
+              {/* Checkbox de recordar correo */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.5 }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  id="rememberEmail"
+                  type="checkbox"
+                  checked={rememberEmail}
+                  onChange={(e) => setRememberEmail(e.target.checked)}
+                  className="accent-blue-600"
+                />
+                <Label htmlFor="rememberEmail" className="text-sm text-gray-600 cursor-pointer">
+                  Recordar mi correo
+                </Label>
               </motion.div>
 
               <motion.div

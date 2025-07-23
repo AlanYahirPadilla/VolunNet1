@@ -43,14 +43,11 @@ export function TopHeader({ user, notifications }: TopHeaderProps) {
       await logoutAction()
       router.push("/")
     } catch (error) {
-      console.error("Error en logout:", error)
       // Fallback: intentar logout via API
       try {
         await fetch("/api/auth/logout", { method: "POST" })
         router.push("/")
       } catch (apiError) {
-        console.error("Error en logout API:", apiError)
-        // Forzar redirección
         window.location.href = "/"
       }
     }

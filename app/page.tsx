@@ -345,18 +345,18 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl"
+                className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/40 shadow-xl"
               >
                 <motion.div
                   initial={{ scale: 0.5 }}
                   whileInView={{ scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ type: "spring", stiffness: 100, delay: 0.2 + index * 0.1 }}
-                  className="text-4xl font-bold mb-2 text-white"
+                  className="text-4xl font-bold mb-2 text-gray-900"
                 >
                   {stat.value}
                 </motion.div>
-                <div className="text-blue-100">{stat.label}</div>
+                <div className="text-gray-700 font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
