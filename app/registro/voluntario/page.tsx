@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { registerAction } from "@/app/auth/actions"
 import BasicInfoStep from "@/components/registro/basic-info-step"
 import InterestsStep from "@/components/registro/interests-step"
+import AvailabilityStep, { TimeSlot } from "@/components/registro/availability-step"
 import { useFormAutosave } from "@/hooks/use-form-autosave"
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator"
 import { RecoveryBanner } from "@/components/ui/recovery-banner"
@@ -28,7 +29,7 @@ export default function RegistroVoluntario() {
     role: "VOLUNTEER",
     interests: [] as string[],
     hoursPerWeek: "",
-    timeSlots: [] as string[],
+    timeSlots: [] as TimeSlot[],
     city: "",
     state: "",
     maxDistance: "10",
@@ -207,11 +208,45 @@ export default function RegistroVoluntario() {
         return <InterestsStep interests={formData.interests} toggleArrayItem={toggleArrayItem} />
       case 3:
         return (
-          <div> {/* DisponibilidadStep aquí (puedes extraerlo del original) */} </div>
+          <AvailabilityStep
+            timeSlots={formData.timeSlots}
+            setTimeSlots={slots => updateFormData("timeSlots", slots)}
+            hoursPerWeek={formData.hoursPerWeek}
+            setHoursPerWeek={val => updateFormData("hoursPerWeek", val)}
+          />
         )
       case 4:
         return (
-          <div> {/* LocationStep aquí (puedes extraerlo del original) */} </div>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Ubicación</h3>
+              <p className="text-gray-600">¿En qué ciudad y estado te encuentras?</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">Ciudad</label>
+                <input
+                  id="city"
+                  value={formData.city}
+                  onChange={e => updateFormData("city", e.target.value)}
+                  placeholder="Ciudad"
+                  required
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="state" className="block text-sm font-medium text-gray-700">Estado</label>
+                <input
+                  id="state"
+                  value={formData.state}
+                  onChange={e => updateFormData("state", e.target.value)}
+                  placeholder="Estado"
+                  required
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+            </div>
+          </motion.div>
         )
       default:
         return null

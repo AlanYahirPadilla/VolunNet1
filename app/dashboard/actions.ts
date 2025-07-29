@@ -72,7 +72,7 @@ export async function getPersonalizedRecommendations() {
       // Obtener perfil del voluntario con timeout
       console.log("🔍 Obteniendo perfil del voluntario...")
       const volunteers = (await Promise.race([
-        sql`SELECT * FROM volunteers WHERE user_id = ${user.id}`,
+        sql`SELECT * FROM volunteers WHERE "userId" = ${user.id}`,
         new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000)),
       ])) as any[]
 
@@ -91,7 +91,7 @@ export async function getPersonalizedRecommendations() {
           SELECT e.*, ec.name as category_name, ec.icon as category_icon,
                  o.name as organization_name, o.verified as organization_verified
           FROM events e
-          JOIN event_categories ec ON e.category_id = ec.id
+          JOIN event_categories ec ON e.categoryId = ec.id
           JOIN organizations o ON e.organization_id = o.id
           WHERE e.status = 'PUBLISHED' 
           AND e.start_date > NOW()
@@ -110,7 +110,7 @@ export async function getPersonalizedRecommendations() {
         const reasons = []
 
         // Similitud de intereses (peso: 40%)
-        const interestSimilarity = calculateSimilarity(volunteer.preferred_categories || [], [event.category_id])
+        const interestSimilarity = calculateSimilarity(volunteer.preferred_categories || [], [event.categoryId])
         score += interestSimilarity * 0.4
         if (interestSimilarity > 0) {
           reasons.push(`Coincide con tus intereses en ${event.category_name}`)
@@ -183,7 +183,7 @@ export async function getPersonalizedRecommendations() {
       // Para organizaciones, mostrar eventos similares o voluntarios potenciales
       console.log("🔍 Obteniendo datos de organización...")
       const organizations = (await Promise.race([
-        sql`SELECT * FROM organizations WHERE user_id = ${user.id}`,
+        sql`SELECT * FROM organizations WHERE "userId" = ${user.id}`,
         new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000)),
       ])) as any[]
 
@@ -200,7 +200,7 @@ export async function getPersonalizedRecommendations() {
         sql`
           SELECT v.*, u.first_name, u.last_name, u.email
           FROM volunteers v
-          JOIN users u ON v.user_id = u.id
+          JOIN users u ON v.userId = u.id
           WHERE u.active = true
           AND v.onboarding_completed = true
           LIMIT 20
@@ -267,12 +267,12 @@ export async function getPersonalizedRecommendations() {
         SELECT e.*, ec.name as category_name, ec.icon as category_icon,
                o.name as organization_name, o.verified as organization_verified
         FROM events e
-        JOIN event_categories ec ON e.category_id = ec.id
-        JOIN organizations o ON e.organization_id = o.id
+        JOIN event_categories ec ON e."categoryId" = ec.id
+        JOIN organizations o ON e."organizationId" = o.id
         WHERE e.status = 'PUBLISHED' 
-        AND e.start_date > NOW()
-        AND e.current_volunteers < e.max_volunteers
-        ORDER BY e.created_at DESC
+        AND e."startDate" > NOW()
+        AND e."currentVolunteers" < e."maxVolunteers"
+        ORDER BY e."createdAt" DESC
         LIMIT 6
       `
 
@@ -307,7 +307,7 @@ export async function getUserStats() {
 
     if (user.role === "VOLUNTEER") {
       const volunteers = (await Promise.race([
-        sql`SELECT * FROM volunteers WHERE user_id = ${user.id}`,
+        sql`SELECT * FROM volunteers WHERE "userId" = ${user.id}`,
         new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000)),
       ])) as any[]
 
@@ -362,7 +362,7 @@ export async function getUserStats() {
             SELECT ec.name, ec.icon, COUNT(*) as count
             FROM event_applications ea
             JOIN events e ON ea.event_id = e.id
-            JOIN event_categories ec ON e.category_id = ec.id
+            JOIN event_categories ec ON e.categoryId = ec.id
             WHERE ea.volunteer_id = ${user.id}
             AND ea.status IN ('ACCEPTED', 'COMPLETED')
             GROUP BY ec.id, ec.name, ec.icon
@@ -425,7 +425,7 @@ export async function getUserStats() {
       return result
     } else if (user.role === "ORGANIZATION") {
       const organizations = (await Promise.race([
-        sql`SELECT * FROM organizations WHERE user_id = ${user.id}`,
+        sql`SELECT * FROM organizations WHERE "userId" = ${user.id}`,
         new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000)),
       ])) as any[]
 

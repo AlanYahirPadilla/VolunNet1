@@ -10,8 +10,10 @@ import { motion } from "framer-motion"
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
     }
@@ -38,21 +40,19 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
       {/* Header */}
       <header
-        className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-transparent"}`}
+        className={`fixed w-full z-50 transition-all duration-300 ${mounted && scrolled ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-transparent"}`}
       >
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <motion.div initial={{ rotate: -10 }} animate={{ rotate: 0 }} transition={{ duration: 0.5 }}>
-              <Heart className="h-8 w-8 text-blue-600 fill-blue-200" />
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          <div className="flex items-center gap-2">
+            <button
+              className="flex items-center gap-2 focus:outline-none"
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              title="Ir al inicio"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              VolunNet
-            </motion.h1>
+              <Heart className="h-8 w-8 text-blue-600 fill-blue-200" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">VolunNet</span>
+            </button>
           </div>
 
           {/* Desktop Navigation */}

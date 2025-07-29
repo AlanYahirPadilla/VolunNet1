@@ -40,6 +40,9 @@ interface UserStats {
   completed_events: number
   total_hours: number
   favorite_categories: string[]
+  averageRating?: number;
+  eventsParticipated?: number;
+  hoursCompleted?: number;
 }
 
 interface Notification {
@@ -65,6 +68,7 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [voluntario, setVoluntario] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
     { id: "user", label: "Cargando información del usuario", status: "loading" },
@@ -89,6 +93,12 @@ export default function Dashboard() {
           const currentUser = await getCurrentUser()
           if (currentUser) {
             setUser(currentUser)
+            // Obtener perfil de voluntario
+            const res = await fetch("/api/perfil/voluntario", { credentials: "include" })
+            if (res.ok) {
+              const data = await res.json()
+              setVoluntario(data.voluntario)
+            }
             updateLoadingStep("user", "completed")
           } else {
             updateLoadingStep("user", "error")
@@ -114,6 +124,9 @@ export default function Dashboard() {
                   completed_events: 5,
                   total_hours: 24,
                   favorite_categories: ["Educación", "Medio Ambiente"],
+                  averageRating: 4.5,
+                  eventsParticipated: 24,
+                  hoursCompleted: 156,
                 }
               setStats(statsData)
               updateLoadingStep("stats", "completed")
@@ -126,6 +139,9 @@ export default function Dashboard() {
                 completed_events: 5,
                 total_hours: 24,
                 favorite_categories: ["Educación", "Medio Ambiente"],
+                averageRating: 4.5,
+                eventsParticipated: 24,
+                hoursCompleted: 156,
               })
             }
           })(),
@@ -330,8 +346,15 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2">
             {/* Logo con corazón azul */}
             <div className="flex items-center gap-2">
-              <Heart className="h-8 w-8 text-blue-600 fill-blue-200" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">VolunNet</span>
+              <button
+                className="flex items-center gap-2 focus:outline-none"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                title="Ir al inicio"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              >
+                <Heart className="h-8 w-8 text-blue-600 fill-blue-200" />
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">VolunNet</span>
+              </button>
             </div>
             {/* Barra de búsqueda */}
             <div className="flex-1 mx-8 max-w-xl">
@@ -392,22 +415,41 @@ export default function Dashboard() {
                 <span className="absolute -bottom-2 right-0 bg-yellow-400 text-white text-xs px-2 py-0.5 rounded-full shadow font-semibold border-2 border-white">★ Oro</span>
               </div>
               <div className="text-lg font-bold text-gray-900 text-center">{user?.firstName || 'María'} {user?.lastName || 'González'}</div>
-              {/* Estrellas de calificación */}
-              <div className="flex gap-1 mb-2 mt-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-yellow-300" />
-                ))}
+              {/* Rol dinámico */}
+              <div className="text-xs text-blue-700 font-semibold mb-1">{user?.role === 'VOLUNTEER' ? 'Voluntario' : user?.role || ''}</div>
+              {/* Estrellas de calificación fraccionarias */}
+              <div className="flex gap-1 mb-2 mt-1 items-center">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const rating = voluntario?.rating ?? stats?.averageRating ?? 0;
+                  const isFull = i + 1 <= Math.floor(rating);
+                  const isHalf = !isFull && i < rating;
+                  return (
+                    <span key={i} className="relative">
+                      <Star className={`h-5 w-5 ${isFull ? 'text-yellow-400 fill-yellow-300' : isHalf ? 'text-yellow-400' : 'text-gray-200'}`} />
+                      {isHalf && (
+                        <span className="absolute left-0 top-0 overflow-hidden" style={{ width: '50%' }}>
+                          <Star className="h-5 w-5 text-yellow-400 fill-yellow-300" />
+                        </span>
+                      )}
+                    </span>
+                  );
+                })}
+                <span className="ml-2 text-yellow-600 font-semibold text-sm">{(voluntario?.rating ?? stats?.averageRating ?? 0).toFixed(1)}</span>
               </div>
-              <div className="text-xs text-blue-600 font-medium mb-1">Voluntaria Comprometida</div>
-              <div className="text-xs text-gray-400 mb-2">Parroquia San José</div>
-              <div className="flex gap-3 mt-2 text-xs w-full justify-center">
+              {/* Ubicación real: ciudad y país */}
+              <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                <Home className="h-4 w-4 text-blue-400" />
+                <span>{voluntario?.city && voluntario?.country ? `${voluntario.city}, ${voluntario.country}` : 'Ubicación no registrada'}</span>
+              </div>
+              {/* Eventos y horas reales */}
+              <div className="flex gap-6 mt-2 mb-1">
                 <div className="flex flex-col items-center">
-                  <span className="font-bold text-blue-700 text-base">24</span>
-                  <span className="text-gray-500">Eventos</span>
+                  <span className="text-xl font-bold text-blue-700">{voluntario?.eventsParticipated ?? stats?.eventsParticipated ?? 0}</span>
+                  <span className="text-xs text-gray-500">Eventos</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="font-bold text-green-600 text-base">156h</span>
-                  <span className="text-gray-500">Servicio</span>
+                  <span className="text-xl font-bold text-green-700">{voluntario?.hoursCompleted ?? stats?.hoursCompleted ?? 0}</span>
+                  <span className="text-xs text-gray-500">Horas</span>
                 </div>
               </div>
             </motion.div>
@@ -526,21 +568,21 @@ export default function Dashboard() {
                     <svg className="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
                     Eventos completados
                   </span>
-                  <span className="font-bold text-blue-700 bg-blue-100 rounded px-2 py-0.5">8</span>
+                  <span className="font-bold text-blue-700 bg-blue-100 rounded px-2 py-0.5">{stats?.completed_events ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between bg-green-50 rounded-lg px-3 py-2">
                   <span className="flex items-center gap-2 text-green-700 font-medium">
                     <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
                     Horas servidas
                   </span>
-                  <span className="font-bold text-green-700 bg-green-100 rounded px-2 py-0.5">32</span>
+                  <span className="font-bold text-green-700 bg-green-100 rounded px-2 py-0.5">{voluntario?.hoursCompleted ?? stats?.hoursCompleted ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between bg-purple-50 rounded-lg px-3 py-2">
                   <span className="flex items-center gap-2 text-violet-700 font-medium">
                     <svg className="h-4 w-4 text-violet-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 15l4-4 4 4"/></svg>
                     Nuevos amigos
                   </span>
-                  <span className="font-bold text-violet-700 bg-purple-100 rounded px-2 py-0.5">12</span>
+                  <span className="font-bold text-violet-700 bg-purple-100 rounded px-2 py-0.5"> </span>
                 </div>
               </div>
             </motion.div>

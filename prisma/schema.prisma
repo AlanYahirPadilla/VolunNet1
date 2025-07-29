@@ -59,7 +59,20 @@ model Volunteer {
   
   // Disponibilidad
   availability      Availability[]
-  
+
+  // --- NUEVOS CAMPOS PARA MATCHING IA ---
+  birthDate         DateTime?   // Fecha de nacimiento
+  gender            String?     // Género (opcional)
+  languages         String[]    // Idiomas
+  experience        String[]    // Experiencia previa (puede ser JSON en el futuro)
+  socialLinks       String[]    // Redes sociales
+  cvUrl             String?     // Link o archivo de CV
+  achievements      String[]    // Logros/badges
+  verified          Boolean?    // Estado de verificación
+  references        String[]    // Referencias
+  tagline           String?     // Frase corta o lema personal
+  // --- FIN NUEVOS CAMPOS ---
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -88,7 +101,18 @@ model Organization {
   
   // Relaciones
   events           Event[]
-  
+
+  // --- NUEVOS CAMPOS PARA MATCHING IA ---
+  category         String?     // Sector/categoría de la organización
+  contactEmail     String?     // Email alternativo
+  contactPhone     String?     // Teléfono de contacto
+  socialLinks      String[]    // Redes sociales
+  verificationDocs String[]    // Documentos de verificación
+  preferences      String[]    // Preferencias de voluntarios (skills, edad, etc.)
+  rating           Float       @default(0) // Promedio de calificaciones
+  tagline          String?     // Frase corta o lema de la organización
+  // --- FIN NUEVOS CAMPOS ---
+
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

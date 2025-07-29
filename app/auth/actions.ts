@@ -20,7 +20,7 @@ const registerSchema = z
     password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
     confirmPassword: z.string(),
     firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-    lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
+    lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres").optional(),
     role: z.enum(["VOLUNTEER", "ORGANIZATION"]),
     // Campos opcionales para voluntarios
     interests: z.string().optional(),
@@ -74,7 +74,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   try {
     // Buscar usuario en la base de datos
     const users = await sql`
-      SELECT id, email, password, first_name, last_name, role, verified, active
+      SELECT id, email, password, "firstName", "lastName", role, verified, active
       FROM users 
       WHERE email = ${email} AND active = true
     `
@@ -167,11 +167,15 @@ export async function registerAction(prevState: any, formData: FormData) {
     // Hash de la contraseña
     const hashedPassword = await bcrypt.hash(password, 12)
     const userId = generateId()
-
+    const now = new Date();
+    
+    // Para organizaciones, usar firstName como lastName si no se proporciona
+    const finalLastName = lastName || (role === "ORGANIZATION" ? firstName : "")
+    
     // Crear usuario
     await sql`
-      INSERT INTO users (id, email, password, first_name, last_name, role)
-      VALUES (${userId}, ${email}, ${hashedPassword}, ${firstName}, ${lastName}, ${role})
+      INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdAt", "updatedAt")
+      VALUES (${userId}, ${email}, ${hashedPassword}, ${firstName}, ${finalLastName}, ${role}, ${now}, ${now})
     `
 
     // Crear perfil específico según el rol
@@ -182,18 +186,13 @@ export async function registerAction(prevState: any, formData: FormData) {
       const parsedInterests = interests ? JSON.parse(interests) : []
       const parsedTimeSlots = timeSlots ? JSON.parse(timeSlots) : []
 
+      // Solo guardar los campos que la UI pregunta actualmente
       await sql`
         INSERT INTO volunteers (
-          id, user_id, preferred_categories, available_hours_per_week, 
-          preferred_time_slots, city, state, max_distance_km, 
-          transportation, onboarding_completed
+          id, "userId", skills, interests, city, state, "createdAt", "updatedAt"
         )
         VALUES (
-          ${volunteerId}, ${userId}, ${parsedInterests}, 
-          ${hoursPerWeek ? Number.parseInt(hoursPerWeek.split("-")[0]) : 0},
-          ${parsedTimeSlots}, ${city || ""}, ${state || ""}, 
-          ${maxDistance ? Number.parseInt(maxDistance) : 10}, 
-          ${transportation || ""}, true
+          ${volunteerId}, ${userId}, ARRAY[]::text[], ${parsedInterests}, ${city || ""}, ${state || ""}, ${now}, ${now}
         )
       `
     } else if (role === "ORGANIZATION") {
@@ -202,24 +201,28 @@ export async function registerAction(prevState: any, formData: FormData) {
       // Parsear arrays JSON
       const parsedFocusAreas = focusAreas ? JSON.parse(focusAreas) : []
 
-      await sql`
-        INSERT INTO organizations (
-          id, user_id, name, description, focus_areas, 
-          city, state, onboarding_completed
-        )
-        VALUES (
-          ${organizationId}, ${userId}, ${firstName + " " + lastName}, 
-          ${organizationDescription || "Nueva organización"}, ${parsedFocusAreas},
-          ${city || ""}, ${state || ""}, true
-        )
-      `
+      try {
+        await sql`
+          INSERT INTO organizations (
+            id, "userId", name, description, "createdAt", "updatedAt"
+          )
+          VALUES (
+            ${organizationId}, ${userId}, ${firstName}, 
+            ${organizationDescription || "Nueva organización"}, ${now}, ${now}
+          )
+        `
+        console.log("Organización creada exitosamente:", { organizationId, userId, firstName })
+      } catch (orgError) {
+        console.error("Error al crear organización:", orgError)
+        throw new Error(`Error al crear organización: ${orgError}`)
+      }
     }
 
     // Crear notificación de bienvenida
     const notificationId = generateId()
     await sql`
-      INSERT INTO notifications (id, user_id, title, message, type)
-      VALUES (${notificationId}, ${userId}, 'Bienvenido a VolunNet', 'Tu cuenta ha sido creada exitosamente. ¡Comienza a explorar oportunidades de voluntariado!', 'SUCCESS')
+      INSERT INTO notifications (id, "userId", title, message, type, "createdAt", "updatedAt")
+      VALUES (${notificationId}, ${userId}, 'Bienvenido a VolunNet', 'Tu cuenta ha sido creada exitosamente. ¡Comienza a explorar oportunidades de voluntariado!', 'SUCCESS', ${now}, ${now})
     `
 
     return {
@@ -262,7 +265,7 @@ export async function getCurrentUser() {
 
     // Obtener datos actualizados del usuario
     const users = await sql`
-      SELECT id, email, first_name, last_name, role, verified, active
+      SELECT id, email, "firstName", "lastName", role, verified, active
       FROM users 
       WHERE id = ${payload.userId} AND active = true
     `
@@ -277,8 +280,8 @@ export async function getCurrentUser() {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
       verified: user.verified,
     }

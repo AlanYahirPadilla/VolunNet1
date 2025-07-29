@@ -21,7 +21,7 @@ interface CustomWidgetsProps {
   }>
 }
 
-export function CustomWidgets({ stats, upcomingEvents }: CustomWidgetsProps) {
+export function CustomWidgets({ stats, upcomingEvents, voluntario }: CustomWidgetsProps & { voluntario?: any }) {
   const successRate = stats?.total_applications
     ? Math.round((stats.accepted_applications / stats.total_applications) * 100)
     : 0
@@ -259,6 +259,36 @@ export function CustomWidgets({ stats, upcomingEvents }: CustomWidgetsProps) {
             <Button variant="ghost" size="sm" className="w-full text-stone-600 hover:text-stone-700 hover:bg-stone-50">
               Ver toda la actividad
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reemplaza el widget de estadísticas del mes por uno funcional y dinámico */}
+      <Card className="bg-white border border-gray-100 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center text-base text-gray-800">
+            <span className="text-purple-500 font-bold text-xl mr-2">+</span>
+            Estadísticas del Mes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 pt-0">
+          <div className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
+            <span className="flex items-center gap-2 text-blue-700 text-sm font-medium">
+              <Clock className="h-4 w-4" /> Eventos completados
+            </span>
+            <span className="font-bold text-blue-700 text-base">{voluntario?.eventsParticipated ?? stats?.completed_events ?? 0}</span>
+          </div>
+          <div className="flex items-center justify-between bg-green-50 rounded-lg px-3 py-2">
+            <span className="flex items-center gap-2 text-green-700 text-sm font-medium">
+              <Clock className="h-4 w-4" /> Horas servidas
+            </span>
+            <span className="font-bold text-green-700 text-base">{voluntario?.hoursCompleted ?? stats?.total_hours ?? 0}</span>
+          </div>
+          <div className="flex items-center justify-between bg-purple-50 rounded-lg px-3 py-2">
+            <span className="flex items-center gap-2 text-purple-700 text-sm font-medium">
+              <Users className="h-4 w-4" /> Nuevos amigos
+            </span>
+            <span className="font-bold text-purple-700 text-base"> </span>
           </div>
         </CardContent>
       </Card>
