@@ -1,0 +1,322 @@
+// Esquema de base de datos para VolunNet
+// Cumple con requerimientos de PostgreSQL y Redis para caché
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  avatar    String?
+  role      Role     @default(VOLUNTEER)
+  verified  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones específicas por rol
+  volunteer    Volunteer?
+  organization Organization?
+
+  // Relaciones generales
+  notifications    Notification[]
+  eventApplications EventApplication[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  userVectors      UserVector[]
+
+  @@map("users")
+}
+
+model Volunteer {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  skills            String[]
+  interests         String[]
+  bio               String?
+  rating            Float    @default(0)
+  hoursCompleted    Int      @default(0)
+  eventsParticipated Int     @default(0)
+  
+  // Ubicación
+  address           String?
+  city              String?
+  state             String?
+  country           String?
+  latitude          Float?
+  longitude         Float?
+  
+  // Disponibilidad
+  availability      Availability[]
+
+  // --- NUEVOS CAMPOS PARA MATCHING IA ---
+  birthDate         DateTime?   // Fecha de nacimiento
+  gender            String?     // Género (opcional)
+  languages         String[]    // Idiomas
+  experience        String[]    // Experiencia previa (puede ser JSON en el futuro)
+  socialLinks       String[]    // Redes sociales
+  cvUrl             String?     // Link o archivo de CV
+  achievements      String[]    // Logros/badges
+  verified          Boolean?    // Estado de verificación
+  references        String[]    // Referencias
+  tagline           String?     // Frase corta o lema personal
+  // --- FIN NUEVOS CAMPOS ---
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("volunteers")
+}
+
+model Organization {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name             String
+  description      String
+  website          String?
+  verified         Boolean  @default(false)
+  eventsCreated    Int      @default(0)
+  volunteersHelped Int      @default(0)
+  
+  // Ubicación
+  address          String?
+  city             String?
+  state            String?
+  country          String?
+  latitude         Float?
+  longitude        Float?
+  
+  // Relaciones
+  events           Event[]
+
+  // --- NUEVOS CAMPOS PARA MATCHING IA ---
+  category         String[]     // Sector/categoría de la organización
+  contactEmail     String?     // Email alternativo
+  contactPhone     String?     // Teléfono de contacto
+  socialLinks      String[]    // Redes sociales
+  verificationDocs String[]    // Documentos de verificación
+  preferences      String[]    // Preferencias de voluntarios (skills, edad, etc.)
+  rating           Float       @default(0) // Promedio de calificaciones
+  tagline          String?     // Frase corta o lema de la organización
+  // --- FIN NUEVOS CAMPOS ---
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("organizations")
+}
+
+model Event {
+  id               String      @id @default(cuid())
+  title            String
+  description      String
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Ubicación del evento
+  address          String
+  city             String
+  state            String
+  country          String
+  latitude         Float
+  longitude        Float
+  
+  // Fechas
+  startDate        DateTime
+  endDate          DateTime
+  
+  // Capacidad
+  maxVolunteers    Int
+  currentVolunteers Int        @default(0)
+  
+  // Categorización
+  skills           String[]
+  categoryId       String
+  category         EventCategory @relation(fields: [categoryId], references: [id])
+  
+  // Estado
+  status           EventStatus @default(DRAFT)
+  
+  // Detalles
+  requirements     String[]
+  benefits         String[]
+  imageUrl         String?
+  
+  // Relaciones
+  applications     EventApplication[]
+  messages         Message[]
+  
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("events")
+}
+
+model EventCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String
+  icon        String
+  color       String
+  active      Boolean @default(true)
+  
+  events      Event[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("event_categories")
+}
+
+model EventApplication {
+  id          String            @id @default(cuid())
+  eventId     String
+  event       Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteerId String
+  volunteer   User              @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  
+  status      ApplicationStatus @default(PENDING)
+  appliedAt   DateTime          @default(now())
+  message     String?
+  
+  // Evaluación post-evento
+  rating      Int?              // 1-5 stars
+  feedback    String?
+  completedAt DateTime?
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([eventId, volunteerId])
+  @@map("event_applications")
+}
+
+model Availability {
+  id          String    @id @default(cuid())
+  volunteerId String
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek   Int       // 0-6 (Sunday-Saturday)
+  startTime   String    // HH:MM format
+  endTime     String    // HH:MM format
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("availability")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  actionUrl String?
+  
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("notifications")
+}
+
+model Message {
+  id         String      @id @default(cuid())
+  eventId    String?
+  event      Event?      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User        @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User        @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  content    String
+  read       Boolean     @default(false)
+  type       MessageType @default(DIRECT)
+  
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("messages")
+}
+
+// Modelos para Machine Learning
+model UserVector {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  features    Float[]  // Vector de características para ML
+  lastUpdated DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("user_vectors")
+}
+
+model MLMetrics {
+  id        String   @id @default(cuid())
+  modelType String   // 'knn', 'random_forest', etc.
+  precision Float
+  recall    Float
+  f1Score   Float
+  accuracy  Float
+  
+  createdAt DateTime @default(now())
+
+  @@map("ml_metrics")
+}
+
+// Enums
+enum Role {
+  VOLUNTEER
+  ORGANIZATION
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  EVENT_UPDATE
+  APPLICATION_UPDATE
+  MESSAGE
+}
+
+enum MessageType {
+  DIRECT
+  EVENT_CHAT
+  SYSTEM
+}
