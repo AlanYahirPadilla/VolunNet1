@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  password              String
+  firstName             String
+  lastName              String
+  avatar                String?
+  role                  Role                   @default(VOLUNTEER)
+  verified              Boolean                @default(false)
+  active                Boolean                @default(true)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  emailVerified         Boolean                @default(false)
+  emailVerifiedAt       DateTime?
+  phoneVerified         Boolean                @default(false)
+  phoneVerifiedAt       DateTime?
+  emailVerificationCode EmailVerificationCode?
+  eventApplications     EventApplication[]
+  receivedMessages      Message[]              @relation("ReceivedMessages")
+  sentMessages          Message[]              @relation("SentMessages")
+  notifications         Notification[]
+  organization          Organization?
+  phoneVerificationCode PhoneVerificationCode?
+  userVectors           UserVector[]
+  volunteer             Volunteer?
+
+  @@map("users")
+}
+
+model Volunteer {
+  id                 String         @id @default(cuid())
+  userId             String         @unique
+  skills             String[]
+  interests          String[]
+  bio                String?
+  rating             Float          @default(0)
+  hoursCompleted     Int            @default(0)
+  eventsParticipated Int            @default(0)
+  address            String?
+  city               String?
+  state              String?
+  country            String?
+  latitude           Float?
+  longitude          Float?
+  birthDate          DateTime?
+  gender             String?
+  languages          String[]
+  experience         String[]
+  socialLinks        String[]
+  cvUrl              String?
+  achievements       String[]
+  verified           Boolean?
+  references         String[]
+  tagline            String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  availability       Availability[]
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("volunteers")
+}
+
+model Organization {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  name             String
+  description      String
+  website          String?
+  verified         Boolean  @default(false)
+  eventsCreated    Int      @default(0)
+  volunteersHelped Int      @default(0)
+  address          String?
+  city             String?
+  state            String?
+  country          String?
+  latitude         Float?
+  longitude        Float?
+  contactEmail     String?
+  contactPhone     String?
+  socialLinks      String[]
+  verificationDocs String[]
+  preferences      String[]
+  rating           Float    @default(0)
+  tagline          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  category         String[]
+  events           Event[]
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("organizations")
+}
+
+model Event {
+  id                String             @id @default(cuid())
+  title             String
+  description       String
+  organizationId    String
+  address           String
+  city              String
+  state             String
+  country           String
+  latitude          Float
+  longitude         Float
+  startDate         DateTime
+  endDate           DateTime
+  maxVolunteers     Int
+  currentVolunteers Int                @default(0)
+  skills            String[]
+  categoryId        String
+  status            EventStatus        @default(DRAFT)
+  requirements      String[]
+  benefits          String[]
+  imageUrl          String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  applications      EventApplication[]
+  category          EventCategory      @relation(fields: [categoryId], references: [id])
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages          Message[]
+
+  @@map("events")
+}
+
+model EventCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String
+  color       String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events      Event[]
+
+  @@map("event_categories")
+}
+
+model EventApplication {
+  id          String            @id @default(cuid())
+  eventId     String
+  volunteerId String
+  status      ApplicationStatus @default(PENDING)
+  appliedAt   DateTime          @default(now())
+  message     String?
+  rating      Int?
+  feedback    String?
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  event       Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteer   User              @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, volunteerId])
+  @@map("event_applications")
+}
+
+model Availability {
+  id          String    @id @default(cuid())
+  volunteerId String
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@map("availability")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Message {
+  id         String      @id @default(cuid())
+  eventId    String?
+  senderId   String
+  receiverId String
+  content    String
+  read       Boolean     @default(false)
+  type       MessageType @default(DIRECT)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  event      Event?      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  receiver   User        @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User        @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model UserVector {
+  id          String   @id @default(cuid())
+  userId      String
+  features    Float[]
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_vectors")
+}
+
+model MLMetrics {
+  id        String   @id @default(cuid())
+  modelType String
+  precision Float
+  recall    Float
+  f1Score   Float
+  accuracy  Float
+  createdAt DateTime @default(now())
+
+  @@map("ml_metrics")
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_codes")
+}
+
+model PhoneVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  phone     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("phone_verification_codes")
+}
+
+enum Role {
+  VOLUNTEER
+  ORGANIZATION
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  EVENT_UPDATE
+  APPLICATION_UPDATE
+  MESSAGE
+}
+
+enum MessageType {
+  DIRECT
+  EVENT_CHAT
+  SYSTEM
+}
