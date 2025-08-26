@@ -8,6 +8,7 @@ const sql = neon(process.env.DATABASE_URL!)
 // Cache simple en memoria para datos que no cambian frecuentemente
 const cache = new Map<string, { data: any; timestamp: number; ttl: number }>()
 
+<<<<<<< HEAD
 // Timeout configuration
 const DEFAULT_TIMEOUT = 10000 // 10 seconds
 const SHORT_TIMEOUT = 5000    // 5 seconds
@@ -32,6 +33,8 @@ async function safeQuery<T>(queryFn: () => Promise<T>, timeoutMs: number = DEFAU
   }
 }
 
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 function getCachedData(key: string) {
   const cached = cache.get(key)
   if (cached && Date.now() - cached.timestamp < cached.ttl) {
@@ -95,10 +98,17 @@ export async function getPersonalizedRecommendations() {
     if (user.role === "VOLUNTEER") {
       // Obtener perfil del voluntario con timeout
       console.log("🔍 Obteniendo perfil del voluntario...")
+<<<<<<< HEAD
       const volunteers = await safeQuery(
         () => sql`SELECT * FROM volunteers WHERE "userId" = ${user.id}`,
         SHORT_TIMEOUT
       ) as any[]
+=======
+      const volunteers = (await Promise.race([
+        sql`SELECT * FROM volunteers WHERE "userId" = ${user.id}`,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000)),
+      ])) as any[]
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 
       if (volunteers.length === 0) {
         console.log("⚠️ Perfil de voluntario no encontrado")
@@ -110,13 +120,19 @@ export async function getPersonalizedRecommendations() {
 
       // Obtener eventos disponibles con query optimizada
       console.log("🔍 Obteniendo eventos disponibles...")
+<<<<<<< HEAD
       const events = await safeQuery(
         () => sql`
+=======
+      const events = (await Promise.race([
+        sql`
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
           SELECT e.*, ec.name as category_name, ec.icon as category_icon,
                  o.name as organization_name, o.verified as organization_verified
           FROM events e
           JOIN event_categories ec ON e.categoryId = ec.id
           JOIN organizations o ON e.organization_id = o.id
+<<<<<<< HEAD
           WHERE e.status IN ('PUBLISHED', 'ONGOING')
           AND e.current_volunteers < e.max_volunteers
           AND e."endDate" >= NOW() - INTERVAL '7 days'
@@ -125,6 +141,16 @@ export async function getPersonalizedRecommendations() {
         `,
         SHORT_TIMEOUT
       ) as any[]
+=======
+          WHERE e.status = 'PUBLISHED' 
+          AND e.start_date > NOW()
+          AND e.current_volunteers < e.max_volunteers
+          ORDER BY e.created_at DESC
+          LIMIT 20
+        `,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000)),
+      ])) as any[]
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 
       console.log(`✅ ${events.length} eventos encontrados`)
 
@@ -433,8 +459,13 @@ export async function getUserStats() {
         completedApplications,
         totalHours: Math.round(totalHours),
         averageRating: Math.round(averageRating * 10) / 10,
+<<<<<<< HEAD
         eventsParticipated: volunteer.eventsParticipated || 0,
         hoursCompleted: volunteer.hoursCompleted || 0,
+=======
+        eventsParticipated: volunteer.events_participated || 0,
+        hoursCompleted: volunteer.hours_completed || 0,
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
         topCategories: Array.isArray(categoryStats) ? categoryStats : [],
         recentEvents: Array.isArray(completedEvents) ? completedEvents : [],
         successRate: totalApplications > 0 ? Math.round((acceptedApplications / totalApplications) * 100) : 0,
@@ -637,6 +668,7 @@ export async function invalidateCache(pattern: string) {
   }
   console.log(`🗑️ Cache invalidado para patrón: ${pattern}`)
 }
+<<<<<<< HEAD
 
 // Nueva función para obtener eventos recientes completados
 export async function getRecentCompletedEvents() {
@@ -681,3 +713,5 @@ export async function getRecentCompletedEvents() {
     return { events: [] }
   }
 }
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb

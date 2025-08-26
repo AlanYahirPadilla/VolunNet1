@@ -1,6 +1,10 @@
 "use client"
 
+<<<<<<< HEAD
 import { useEffect, useState, useRef, useCallback } from "react"
+=======
+import { useEffect, useState, useRef } from "react"
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { TopHeader } from "@/components/dashboard/top-header"
@@ -8,6 +12,7 @@ import { EnhancedSidebar } from "@/components/dashboard/enhanced-sidebar"
 import { CustomWidgets } from "@/components/dashboard/custom-widgets"
 import { EventCard } from "@/components/dashboard/event-card"
 import { CalendarView } from "@/components/dashboard/calendar-view"
+<<<<<<< HEAD
 import { Star, Heart, Home, Calendar, Users, Bell, LogOut, User, Settings, Search } from "lucide-react"
 import Link from "next/link"
 import { getPersonalizedRecommendations, getUserStats, getRecentNotifications, getRecentCompletedEvents } from "./actions"
@@ -20,6 +25,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { ApplicationStatusBadge } from "@/components/ui/application-status-badge"
+=======
+import { Star, Heart, Home, Calendar, Users, Bell, LogOut, User, Settings } from "lucide-react"
+import Link from "next/link"
+import { getPersonalizedRecommendations, getUserStats, getRecentNotifications } from "./actions"
+import { getCurrentUser } from "../auth/actions"
+import { AdaptiveLoading } from "@/components/ui/adaptive-loading"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 
 interface Event {
   id: string
@@ -36,8 +51,11 @@ interface Event {
   skills: string[]
   recommendation_score?: number
   recommendation_reasons?: string[]
+<<<<<<< HEAD
   hasApplied?: boolean
   applicationStatus?: string
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 }
 
 interface UserStats {
@@ -68,6 +86,7 @@ interface LoadingStep {
   status: LoadingStepStatus;
 }
 
+<<<<<<< HEAD
 // Dashboard Error Boundary Component
 function DashboardErrorBoundary({ children }: { children: any }) {
   return <ErrorBoundary>{children}</ErrorBoundary>
@@ -78,6 +97,10 @@ export default function Dashboard() {
   const [events, setEvents] = useState<Event[]>([])
   const [myEvents, setMyEvents] = useState<Event[]>([])
   const [completedEvents, setCompletedEvents] = useState<Event[]>([])
+=======
+export default function Dashboard() {
+  const [events, setEvents] = useState<Event[]>([])
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
   const [stats, setStats] = useState<UserStats | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,6 +113,7 @@ export default function Dashboard() {
     { id: "events", label: "Buscando eventos recomendados", status: "pending" },
     { id: "notifications", label: "Cargando notificaciones", status: "pending" },
   ])
+<<<<<<< HEAD
   
   // Estados para el modal de postulación
   const [showApplicationModal, setShowApplicationModal] = useState(false)
@@ -522,11 +546,20 @@ export default function Dashboard() {
     }
     isInitialized.current = true
 
+=======
+
+  const updateLoadingStep = (stepId: string, status: "loading" | "completed" | "error") => {
+    setLoadingSteps((prev) => prev.map((step) => (step.id === stepId ? { ...step, status } : step)))
+  }
+
+  useEffect(() => {
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
     async function loadData() {
       const startTime = Date.now()
       console.log("🚀 Iniciando carga optimizada del dashboard...")
 
       try {
+<<<<<<< HEAD
         // Load user data first
         await loadUserData()
 
@@ -540,13 +573,193 @@ export default function Dashboard() {
           loadNotificationsData(),
         ])
 
+=======
+        // Cargar usuario primero
+        updateLoadingStep("user", "loading")
+        try {
+          const currentUser = await getCurrentUser()
+          if (currentUser) {
+            setUser(currentUser)
+            // Obtener perfil de voluntario
+            const res = await fetch("/api/perfil/voluntario", { credentials: "include" })
+            if (res.ok) {
+              const data = await res.json()
+              setVoluntario(data.voluntario)
+            }
+            updateLoadingStep("user", "completed")
+          } else {
+            updateLoadingStep("user", "error")
+            setUser({ firstName: "Alan Padilla", lastName: "Venegas", role: "VOLUNTEER" })
+          }
+        } catch (userError) {
+          console.error("Error cargando usuario:", userError)
+          updateLoadingStep("user", "error")
+          setUser({ firstName: "Alan Padilla", lastName: "Venegas", role: "VOLUNTEER" })
+        }
+
+        // Cargar datos en paralelo
+        const dataPromises = [
+          // Estadísticas
+          (async () => {
+            updateLoadingStep("stats", "loading")
+            try {
+              const statsResponse = await getUserStats()
+              const statsData = statsResponse?.stats ||
+                statsResponse || {
+                  total_applications: 12,
+                  accepted_applications: 8,
+                  completed_events: 5,
+                  total_hours: 24,
+                  favorite_categories: ["Educación", "Medio Ambiente"],
+                  averageRating: 4.5,
+                  eventsParticipated: 24,
+                  hoursCompleted: 156,
+                }
+              setStats(statsData)
+              updateLoadingStep("stats", "completed")
+            } catch (statsError) {
+              console.error("Error cargando estadísticas:", statsError)
+              updateLoadingStep("stats", "error")
+              setStats({
+                total_applications: 12,
+                accepted_applications: 8,
+                completed_events: 5,
+                total_hours: 24,
+                favorite_categories: ["Educación", "Medio Ambiente"],
+                averageRating: 4.5,
+                eventsParticipated: 24,
+                hoursCompleted: 156,
+              })
+            }
+          })(),
+
+          // Eventos recomendados
+          (async () => {
+            updateLoadingStep("events", "loading")
+            try {
+              const eventsResponse = await getPersonalizedRecommendations()
+              const eventsData = Array.isArray(eventsResponse) ? eventsResponse : eventsResponse?.recommendations || []
+
+              // Agregar algunos eventos de ejemplo para demostrar el calendario
+              const sampleEvents = [
+                {
+                  id: "sample-1",
+                  title: "Limpieza de Playa Vallarta",
+                  description: "Actividad de limpieza en la playa principal de Puerto Vallarta",
+                  organization_name: "EcoMar Jalisco",
+                  city: "Puerto Vallarta",
+                  state: "Jalisco",
+                  start_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+                  max_volunteers: 20,
+                  current_volunteers: 8,
+                  category_name: "Medio Ambiente",
+                  skills: ["Trabajo en equipo", "Resistencia física"],
+                },
+                {
+                  id: "sample-2",
+                  title: "Taller de Programación para Niños",
+                  description: "Enseñanza básica de programación a niños de primaria",
+                  organization_name: "CodeForAll",
+                  city: "Guadalajara",
+                  state: "Jalisco",
+                  start_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+                  max_volunteers: 10,
+                  current_volunteers: 3,
+                  category_name: "Educación",
+                  skills: ["Programación", "Paciencia", "Comunicación"],
+                },
+                {
+                  id: "sample-3",
+                  title: "Donación de Alimentos",
+                  description: "Recolección y distribución de alimentos para familias necesitadas",
+                  organization_name: "Banco de Alimentos GDL",
+                  city: "Zapopan",
+                  state: "Jalisco",
+                  start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                  max_volunteers: 15,
+                  current_volunteers: 12,
+                  category_name: "Asistencia Social",
+                  skills: ["Organización", "Trabajo en equipo"],
+                },
+                {
+                  id: "sample-4",
+                  title: "Construcción de Casa Habitación",
+                  description: "Apoyo en construcción de vivienda para familia de bajos recursos",
+                  organization_name: "Hábitat para la Humanidad",
+                  city: "Tlaquepaque",
+                  state: "Jalisco",
+                  start_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+                  max_volunteers: 25,
+                  current_volunteers: 18,
+                  category_name: "Construcción",
+                  skills: ["Construcción", "Trabajo físico", "Herramientas"],
+                },
+              ]
+
+              setEvents([...eventsData, ...sampleEvents])
+              updateLoadingStep("events", "completed")
+            } catch (eventsError) {
+              console.error("Error cargando eventos:", eventsError)
+              updateLoadingStep("events", "error")
+              setEvents([])
+            }
+          })(),
+
+          // Notificaciones
+          (async () => {
+            updateLoadingStep("notifications", "loading")
+            try {
+              const notificationsResponse = await getRecentNotifications()
+              const notificationsData = notificationsResponse?.notifications || [
+                {
+                  id: "1",
+                  title: "Nuevo evento disponible",
+                  message: "Se ha publicado un nuevo evento de limpieza de playa",
+                  type: "info",
+                  created_at: new Date().toISOString(),
+                  read: false,
+                },
+                {
+                  id: "2",
+                  title: "Aplicación aceptada",
+                  message: "Tu aplicación para el taller de programación ha sido aceptada",
+                  type: "success",
+                  created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                  read: false,
+                },
+                {
+                  id: "3",
+                  title: "Recordatorio de evento",
+                  message: "Tu evento de mañana comienza a las 9:00 AM",
+                  type: "reminder",
+                  created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                  read: true,
+                },
+              ]
+              setNotifications(notificationsData)
+              updateLoadingStep("notifications", "completed")
+            } catch (notificationsError) {
+              console.error("Error cargando notificaciones:", notificationsError)
+              updateLoadingStep("notifications", "error")
+              setNotifications([])
+            }
+          })(),
+        ]
+
+        await Promise.allSettled(dataPromises)
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
         const totalTime = Date.now() - startTime
         console.log(`✅ Carga completa del dashboard en ${totalTime}ms`)
       } catch (error) {
         console.error("Error general en carga de datos:", error)
         setError("Error cargando el dashboard. Por favor, recarga la página.")
+<<<<<<< HEAD
         setLoadingSteps((prev: LoadingStep[]) =>
           prev.map((step: LoadingStep) =>
+=======
+        setLoadingSteps((prev) =>
+          prev.map((step) =>
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
             step.status === "loading" || step.status === "pending" ? { ...step, status: "error" } : step,
           ),
         )
@@ -562,6 +775,7 @@ export default function Dashboard() {
     }
 
     loadData()
+<<<<<<< HEAD
 
     // Cleanup function
     return () => {
@@ -570,6 +784,9 @@ export default function Dashboard() {
       }
     }
   }, [loadUserData, loadMyEvents, loadStatsData, loadEventsData, loadNotificationsData])
+=======
+  }, [])
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 
   // Datos para la barra lateral
   const sidebarStats = {
@@ -590,6 +807,7 @@ export default function Dashboard() {
     location: `${event.city}, ${event.state}`,
   }))
 
+<<<<<<< HEAD
   const handleEventClick = async (event: Event) => {
     if (!user) {
       router.push("/login")
@@ -686,6 +904,11 @@ export default function Dashboard() {
     setSelectedEvent(null)
     setApplicationStatus('checking')
     setModalMessage('')
+=======
+  const handleEventClick = (event: Event) => {
+    console.log("Evento seleccionado:", event)
+    // Aquí puedes agregar la lógica para mostrar detalles del evento
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
   }
 
   // Mapeo de iconos por categoría
@@ -719,9 +942,14 @@ export default function Dashboard() {
 
   // --- NUEVO LAYOUT ---
   return (
+<<<<<<< HEAD
     <DashboardErrorBoundary>
       <AdaptiveLoading type="dashboard" isLoading={loading} loadingSteps={loadingSteps}>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
+=======
+    <AdaptiveLoading type="dashboard" isLoading={loading} loadingSteps={loadingSteps}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
         {/* Header superior tipo LinkedIn */}
         <div className="sticky top-0 z-30 bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2">
@@ -753,11 +981,19 @@ export default function Dashboard() {
                   <span>Inicio</span>
                   <span className="absolute left-0 -bottom-0.5 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
                 </Link>
+<<<<<<< HEAD
                             <Link href="/eventos/buscar" className="flex items-center gap-1 px-3 py-1 rounded-lg hover:text-blue-700 hover:bg-blue-50 transition group relative">
               <Calendar className="h-5 w-5 group-hover:text-blue-700 transition" />
               <span>Eventos</span>
               <span className="absolute left-0 -bottom-0.5 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </Link>
+=======
+                <Link href="/eventos" className="flex items-center gap-1 px-3 py-1 rounded-lg hover:text-blue-700 hover:bg-blue-50 transition group relative">
+                  <Calendar className="h-5 w-5 group-hover:text-blue-700 transition" />
+                  <span>Eventos</span>
+                  <span className="absolute left-0 -bottom-0.5 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+                </Link>
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
                 <Link href="/comunidad" className="flex items-center gap-1 px-3 py-1 rounded-lg hover:text-blue-700 hover:bg-blue-50 transition group relative">
                   <Users className="h-5 w-5 group-hover:text-blue-700 transition" />
                   <span>Comunidad</span>
@@ -874,12 +1110,18 @@ export default function Dashboard() {
               <TabsList className="w-full bg-gray-50 border rounded-lg mb-4">
                 <TabsTrigger value="disponibles" className="flex-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Eventos Disponibles</TabsTrigger>
                 <TabsTrigger value="mis-eventos" className="flex-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Mis Eventos</TabsTrigger>
+<<<<<<< HEAD
                 <TabsTrigger value="notificaciones" className="flex-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Notificaciones</TabsTrigger>
                 <TabsTrigger value="calificaciones" className="flex-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Calificaciones</TabsTrigger>
               </TabsList>
               <TabsContent value="disponibles">
                 <div className="space-y-5">
                   {/* Eventos Disponibles */}
+=======
+              </TabsList>
+              <TabsContent value="disponibles">
+                <div className="space-y-5">
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
                   {events.slice(0, 3).map((event, idx) => (
                     <motion.div
                       key={event.id}
@@ -917,6 +1159,7 @@ export default function Dashboard() {
                           {event.max_volunteers - event.current_volunteers} lugares disponibles
                         </span>
                       </div>
+<<<<<<< HEAD
                                           <div className="flex items-center justify-between mt-2">
                         <ApplicationStatusBadge 
                           hasApplied={event.hasApplied}
@@ -1152,6 +1395,19 @@ export default function Dashboard() {
                       )}
                   </div>
                 </div>
+=======
+                      <div className="flex gap-2 mt-2">
+                        <Button size="sm" className="rounded-full px-5 py-2 font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-sm hover:from-blue-700 hover:to-purple-700 transition-all">Postular</Button>
+                        <Button size="sm" variant="outline" className="rounded-full px-5 py-2 font-semibold border-gray-300 text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all">Me gusta</Button>
+                        <Button size="sm" variant="ghost" className="rounded-full px-5 py-2 font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all">Comentar</Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </TabsContent>
+              <TabsContent value="mis-eventos">
+                <div className="text-gray-500 text-sm text-center py-8">Aquí aparecerán tus eventos inscritos.</div>
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
               </TabsContent>
             </Tabs>
           </div>
@@ -1227,6 +1483,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+<<<<<<< HEAD
 
       {/* Modal de Postulación */}
       {showApplicationModal && selectedEvent && (
@@ -1360,6 +1617,9 @@ export default function Dashboard() {
 
         </AdaptiveLoading>
       </DashboardErrorBoundary>
+=======
+    </AdaptiveLoading>
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
   )
 }
 

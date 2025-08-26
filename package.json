@@ -13,7 +13,10 @@
     "db:pull": "prisma db pull",
     "db:studio": "prisma studio",
     "db:reset": "prisma db push --force-reset",
+<<<<<<< HEAD
     "db:seed": "node scripts/seed-events.js",
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -25,6 +28,7 @@
     "@radix-ui/react-checkbox": "latest",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "latest",
+<<<<<<< HEAD
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-progress": "latest",
@@ -37,18 +41,35 @@
     "@radix-ui/react-tabs": "latest",
     "@radix-ui/react-toast": "^1.1.5",
     "bcryptjs": "^3.0.2",
+=======
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-progress": "latest",
+    "@radix-ui/react-radio-group": "latest",
+    "@radix-ui/react-select": "latest",
+    "@radix-ui/react-separator": "latest",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tabs": "latest",
+    "@radix-ui/react-toast": "^1.1.5",
+    "bcryptjs": "latest",
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
+<<<<<<< HEAD
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
     "framer-motion": "latest",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
     "next-themes": "^0.4.6",
     "react": "^18",
+<<<<<<< HEAD
     "react-day-picker": "^9.8.1",
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
     "react-dom": "^18",
     "react-easy-crop": "^5.5.0",
     "react-icons": "^5.5.0",

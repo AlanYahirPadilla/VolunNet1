@@ -154,6 +154,7 @@ export function usePreloader() {
           case "/notificaciones":
             data = await preloadNotificationsData()
             break
+<<<<<<< HEAD
             default:
               // Para rutas dinámicas como /eventos/[id]
               if (route.startsWith("/eventos/")) {
@@ -164,6 +165,15 @@ export function usePreloader() {
                 }
               }
               break
+=======
+          default:
+            // Para rutas dinámicas como /eventos/[id]
+            if (route.startsWith("/eventos/")) {
+              const eventId = route.split("/")[2]
+              data = await preloadEventDetailsData(eventId)
+            }
+            break
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
         }
 
         if (data) {
@@ -291,7 +301,11 @@ async function preloadEventsData() {
     fetch("/api/events/popular")
       .then((r) => r.json())
       .catch(() => null),
+<<<<<<< HEAD
     fetch("/api/events/buscar?limit=12")
+=======
+    fetch("/api/events/search?limit=12")
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
       .then((r) => r.json())
       .catch(() => null),
   ])

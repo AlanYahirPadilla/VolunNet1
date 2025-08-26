@@ -20,6 +20,7 @@ interface EventCardProps {
     skills?: string[]
     recommendation_score?: number
     recommendation_reasons?: string[]
+<<<<<<< HEAD
     applicationStatus?: string
   }
   showStatus?: boolean
@@ -27,6 +28,12 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, showStatus, applicationStatus }: EventCardProps) {
+=======
+  }
+}
+
+export function EventCard({ event }: EventCardProps) {
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES", {
       day: "numeric",
@@ -38,6 +45,7 @@ export function EventCard({ event, showStatus, applicationStatus }: EventCardPro
 
   // Obtener iniciales de la organización
   const orgInitials = event.organization_name
+<<<<<<< HEAD
     ? event.organization_name
         .split(" ")
         .map((word) => word[0])
@@ -45,6 +53,13 @@ export function EventCard({ event, showStatus, applicationStatus }: EventCardPro
         .toUpperCase()
         .slice(0, 2)
     : "EV"
+=======
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow border-gray-200">
@@ -99,6 +114,7 @@ export function EventCard({ event, showStatus, applicationStatus }: EventCardPro
           </div>
         )}
 
+<<<<<<< HEAD
         {/* Estado de la aplicación */}
         {showStatus && (applicationStatus || event.applicationStatus) && (
           <div className="mb-4">
@@ -122,6 +138,8 @@ export function EventCard({ event, showStatus, applicationStatus }: EventCardPro
           </div>
         )}
 
+=======
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
         <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white">
           <Link href={`/eventos/${event.id}`}>Ver detalles</Link>
         </Button>

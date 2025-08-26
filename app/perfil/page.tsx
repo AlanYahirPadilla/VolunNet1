@@ -112,7 +112,15 @@ function UserMenu({ user }: { user: any }) {
       {open && (
         <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-in">
           <div className="px-4 py-3 border-b border-gray-100">
+<<<<<<< HEAD
             <div className="font-semibold text-gray-800 text-sm">{user?.firstName || 'Yahir Venegas'}</div>
+=======
+<<<<<<< HEAD
+            <div className="font-semibold text-gray-800 text-sm">{user?.firstName || 'Yahir Venegas'}</div>
+=======
+            <div className="font-semibold text-gray-800 text-sm">{user?.name || 'Yahir Venegas'}</div>
+>>>>>>> 0d7606102c49e3b4c415f9b41d6fa689342706c9
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
             <div className="text-xs text-gray-500">{user?.email || 'novayahiro50@gmail.com'}</div>
           </div>
           <Link href="/perfil" className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 transition"><User className="h-4 w-4 text-gray-500" />Perfil</Link>
@@ -305,7 +313,15 @@ export default function PerfilVoluntario() {
               {/* Info principal compacta y tagline */}
               <div className="flex-1 flex flex-col gap-1 min-w-0 pl-2 mb-8 mt-8">
                 <div className="flex items-center gap-3 flex-wrap">
+<<<<<<< HEAD
                   <h1 className="text-3xl font-bold text-gray-900 mb-0 truncate leading-tight">{user?.firstName || 'Yahir Venegas'}</h1>
+=======
+<<<<<<< HEAD
+                  <h1 className="text-3xl font-bold text-gray-900 mb-0 truncate leading-tight">{user?.firstName || 'Yahir Venegas'}</h1>
+=======
+                  <h1 className="text-3xl font-bold text-gray-900 mb-0 truncate leading-tight">{user?.name || 'Yahir Venegas'}</h1>
+>>>>>>> 0d7606102c49e3b4c415f9b41d6fa689342706c9
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
                   {/* Badges automáticos */}
                   {voluntario?.badges?.map((badge: any, idx: number) => (
                     <span key={idx} className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${badge.color}`} title={badge.label}>
@@ -328,7 +344,15 @@ export default function PerfilVoluntario() {
                 </div>
                 <div className="flex items-center gap-2 mb-1 mt-0.5">
                   <MapPin className="h-4 w-4 text-blue-400" />
+<<<<<<< HEAD
                   <span className="text-sm text-gray-500"> {voluntario?.city && voluntario?.state ? `${voluntario.city}, ${voluntario.state}` : 'Guadalajara, Jalisco'} </span>
+=======
+<<<<<<< HEAD
+                  <span className="text-sm text-gray-500"> {voluntario?.city && voluntario?.state ? `${voluntario.city}, ${voluntario.state}` : 'Guadalajara, Jalisco'} </span>
+=======
+                  <span className="text-sm text-gray-500">{user?.city || 'Guadalajara, Jalisco'}</span>
+>>>>>>> 0d7606102c49e3b4c415f9b41d6fa689342706c9
+>>>>>>> ec1cbbc69193834a0a8ca358b8538c352ee8b7bb
                 </div>
                 {/* Tagline */}
                 <div className="text-sm text-gray-600 italic mb-1">Voluntario apasionado por la tecnología y la comunidad</div>
