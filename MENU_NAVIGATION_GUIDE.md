@@ -192,3 +192,4 @@ onClick={() => setTab("postulaciones")}
 - **Respuesta del menú:** < 50ms
 
 
+

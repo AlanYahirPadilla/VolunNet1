@@ -162,3 +162,4 @@ Para reportar problemas o solicitar nuevas funcionalidades:
 4. Adjuntar logs o capturas de pantalla si es necesario
 
 
+

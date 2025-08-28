@@ -234,3 +234,4 @@ const [selectedStatus, setSelectedStatus] = useState("all")
 7. **Modo oscuro** para la interfaz
 
 
+
